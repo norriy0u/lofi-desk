@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LofiDesk - Virtual Study Room</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+:root{--bg:#1a1520;--card:rgba(25,20,35,.92);--warm:#e8a87c;--purple:#9b72cf;--blue:#74b9ff;--green:#55efc4;--text:#e4ddd4;--dim:#6b6080;--font:'Nunito',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text)}
+.screen{position:fixed;inset:0;display:none;justify-content:center;align-items:center;z-index:10;padding:20px}
+.screen.active{display:flex}
+#desk-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.card{background:var(--card);backdrop-filter:blur(20px);border:1px solid rgba(155,114,207,.12);border-radius:20px;padding:36px;text-align:center;max-width:440px;width:90%;animation:fadeUp .7s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.badge{display:inline-block;padding:5px 14px;background:rgba(155,114,207,.08);border:1px solid rgba(155,114,207,.2);border-radius:20px;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--purple);margin-bottom:16px}
+h1{font-size:2.4rem;font-weight:700;margin-bottom:8px}
+h1 span{color:var(--warm)}
+.sub{color:var(--dim);font-size:.9rem;margin-bottom:24px;line-height:1.5}
+.hint{font-size:.65rem;color:var(--dim);margin-top:12px}
+.warm-btn{padding:14px 36px;background:linear-gradient(135deg,var(--warm),#c97d52);color:white;border:none;border-radius:14px;font-family:var(--font);font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(232,168,124,.25)}
+.warm-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(232,168,124,.35)}
+/* Desk */
+.desk-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:500px;width:100%;z-index:10}
+.desk-widget{background:var(--card);border:1px solid rgba(255,255,255,.04);border-radius:16px;padding:20px;text-align:center;transition:all .3s}
+.desk-widget:hover{border-color:rgba(155,114,207,.15);transform:translateY(-2px)}
+.widget-icon{font-size:2rem;margin-bottom:8px}
+.widget-title{font-size:.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+/* Timer Widget */
+.timer-display{font-family:var(--mono);font-size:2.4rem;font-weight:500;color:var(--warm);margin-bottom:10px}
+.timer-controls{display:flex;gap:6px;justify-content:center}
+.t-btn{padding:6px 14px;background:rgba(232,168,124,.08);border:1px solid rgba(232,168,124,.15);border-radius:8px;color:var(--warm);font-size:.7rem;cursor:pointer;transition:all .2s;font-family:var(--font)}
+.t-btn:hover{background:rgba(232,168,124,.15)}.t-btn.active{background:rgba(232,168,124,.2);border-color:var(--warm)}
+/* Todo Widget */
+.todo-list{text-align:left;max-height:140px;overflow-y:auto;margin-bottom:8px}
+.todo-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:.8rem;cursor:pointer;transition:background .2s}
+.todo-item:hover{background:rgba(255,255,255,.03)}
+.todo-check{width:16px;height:16px;border-radius:50%;border:2px solid var(--purple);flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:.6rem}
+.todo-item.done .todo-check{background:var(--purple);border-color:var(--purple)}
+.todo-item.done .todo-text{text-decoration:line-through;opacity:.4}
+.todo-input{width:100%;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;color:var(--text);font-size:.8rem;outline:none;font-family:var(--font)}
+.todo-input:focus{border-color:rgba(155,114,207,.3)}
+/* Ambient Widget */
+.ambient-options{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.amb-btn{padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);font-size:.75rem;cursor:pointer;transition:all .2s;color:var(--dim)}
+.amb-btn:hover{background:rgba(85,239,196,.08);color:var(--green)}
+.amb-btn.active{background:rgba(85,239,196,.1);border-color:var(--green);color:var(--green)}
+/* Notes Widget */
+.notes-area{width:100%;height:100px;padding:10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;color:var(--text);font-family:var(--font);font-size:.8rem;resize:none;outline:none}
+.notes-area:focus{border-color:rgba(155,114,207,.2)}
+/* Quote */
+.quote-bar{max-width:500px;width:100%;padding:12px 20px;background:var(--card);border:1px solid rgba(255,255,255,.04);border-radius:12px;font-size:.8rem;color:var(--dim);font-style:italic;z-index:10;text-align:center}
+.quote-bar span{color:var(--purple)}
+/* Audio controls */
+.audio-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:30;background:var(--card);padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.04)}
+.audio-bar.hidden{display:none}
+.ab-btn{padding:6px 14px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);color:var(--dim);font-size:.75rem;cursor:pointer;transition:all .2s}
+.ab-btn:hover{color:var(--text)}.ab-btn.active{color:var(--warm);border-color:rgba(232,168,124,.2)}
+.volume-slider{width:80px;-webkit-appearance:none;height:4px;background:rgba(255,255,255,.08);border-radius:2px;outline:none}
+.volume-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--warm);cursor:pointer}
+@media(max-width:600px){h1{font-size:1.8rem}.desk-layout{grid-template-columns:1fr;max-width:340px}.timer-display{font-size:2rem}}
+    </style>
+</head>
+<body>
+    <audio id="bg-audio" loop preload="none">
+        <source src="https://cdn.pixabay.com/audio/2022/05/16/audio_097d43d834.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="intro-screen" class="screen active">
+        <div class="card">
+            <div class="badge">VishwaNova 2026 • Productivity</div>
+            <h1>Lofi<span>Desk</span></h1>
+            <p class="sub">Your cozy virtual study room. Focus timer, to-do list, ambient sounds, and sticky notes — all in one place. ☕</p>
+            <button id="start-btn" class="warm-btn">☕ Enter Study Room</button>
+            <p class="hint">🎵 Lofi background music included</p>
+        </div>
+    </div>
+
+    <div id="desk-screen" class="screen">
+        <div class="desk-layout">
+            <!-- Pomodoro Timer -->
+            <div class="desk-widget" style="grid-column:span 2">
+                <div class="widget-icon">⏱️</div>
+                <div class="widget-title">Focus Timer</div>
+                <div class="timer-display" id="timer-display">25:00</div>
+                <div class="timer-controls">
+                    <button class="t-btn active" data-mins="25">25 min</button>
+                    <button class="t-btn" data-mins="15">15 min</button>
+                    <button class="t-btn" data-mins="5">5 min</button>
+                    <button class="t-btn" id="timer-toggle" style="background:rgba(85,239,196,.1);border-color:var(--green);color:var(--green)">▶ Start</button>
+                </div>
+            </div>
+            <!-- Todo -->
+            <div class="desk-widget">
+                <div class="widget-icon">✅</div>
+                <div class="widget-title">Tasks</div>
+                <div class="todo-list" id="todo-list"></div>
+                <input class="todo-input" id="todo-input" placeholder="Add a task..." maxlength="50">
+            </div>
+            <!-- Notes -->
+            <div class="desk-widget">
+                <div class="widget-icon">📝</div>
+                <div class="widget-title">Quick Notes</div>
+                <textarea class="notes-area" id="notes-area" placeholder="Write your thoughts..."></textarea>
+            </div>
+        </div>
+        <div class="quote-bar" id="quote-bar">"<span>The secret of getting ahead is getting started.</span>" — Mark Twain</div>
+    </div>
+
+    <div class="audio-bar hidden" id="audio-bar">
+        <button class="ab-btn active" id="btn-music">🎵 Music</button>
+        <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="30">
+    </div>
+
+    <script>
+const bgAudio=document.getElementById('bg-audio');
+const quotes=[
+    {text:"The secret of getting ahead is getting started.",author:"Mark Twain"},
+    {text:"Focus on being productive instead of busy.",author:"Tim Ferriss"},
+    {text:"Do what you can, with what you have, where you are.",author:"Theodore Roosevelt"},
+    {text:"The way to get started is to quit talking and begin doing.",author:"Walt Disney"},
+    {text:"Don't watch the clock; do what it does. Keep going.",author:"Sam Levenson"},
+    {text:"Action is the foundational key to all success.",author:"Pablo Picasso"},
+    {text:"Start where you are. Use what you have. Do what you can.",author:"Arthur Ashe"},
+    {text:"Small progress is still progress.",author:"Unknown"}
+];
+
+// Timer
+let timerMins=25,timerSecs=0,timerRunning=false,timerInterval=null;
+
+function updateTimerDisplay(){
+    document.getElementById('timer-display').textContent=`${String(timerMins).padStart(2,'0')}:${String(timerSecs).padStart(2,'0')}`;
+}
+
+document.querySelectorAll('[data-mins]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        document.querySelectorAll('[data-mins]').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        timerMins=parseInt(btn.dataset.mins);timerSecs=0;
+        timerRunning=false;clearInterval(timerInterval);
+        document.getElementById('timer-toggle').textContent='▶ Start';
+        updateTimerDisplay();
+    });
+});
+
+document.getElementById('timer-toggle').addEventListener('click',function(){
+    if(timerRunning){
+        timerRunning=false;clearInterval(timerInterval);
+        this.textContent='▶ Start';this.style.color='var(--green)';
+    }else{
+        timerRunning=true;
+        this.textContent='⏸ Pause';this.style.color='var(--warm)';
+        timerInterval=setInterval(()=>{
+            if(timerSecs===0){if(timerMins===0){clearInterval(timerInterval);timerRunning=false;document.getElementById('timer-toggle').textContent='✓ Done!';return}timerMins--;timerSecs=59}else{timerSecs--}
+            updateTimerDisplay();
+        },1000);
+    }
+});
+
+// Todos
+const todoList=document.getElementById('todo-list');
+let todos=JSON.parse(localStorage.getItem('lofi_todos')||'[]');
+
+function renderTodos(){
+    todoList.innerHTML='';
+    todos.forEach((t,i)=>{
+        const div=document.createElement('div');div.className='todo-item'+(t.done?' done':'');
+        div.innerHTML=`<div class="todo-check">${t.done?'✓':''}</div><span class="todo-text">${t.text}</span>`;
+        div.addEventListener('click',()=>{todos[i].done=!todos[i].done;saveTodos();renderTodos()});
+        todoList.appendChild(div);
+    });
+}
+
+function saveTodos(){localStorage.setItem('lofi_todos',JSON.stringify(todos))}
+
+document.getElementById('todo-input').addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&e.target.value.trim()){
+        todos.push({text:e.target.value.trim(),done:false});
+        e.target.value='';saveTodos();renderTodos();
+    }
+});
+renderTodos();
+
+// Notes persistence
+const notesArea=document.getElementById('notes-area');
+notesArea.value=localStorage.getItem('lofi_notes')||'';
+notesArea.addEventListener('input',()=>localStorage.setItem('lofi_notes',notesArea.value));
+
+// Audio
+document.getElementById('btn-music').addEventListener('click',function(){
+    if(bgAudio.paused){bgAudio.play().catch(()=>{});this.classList.add('active')}
+    else{bgAudio.pause();this.classList.remove('active')}
+});
+document.getElementById('volume-slider').addEventListener('input',e=>{bgAudio.volume=e.target.value/100});
+
+// Random quote
+function showRandomQuote(){
+    const q=quotes[Math.floor(Math.random()*quotes.length)];
+    document.getElementById('quote-bar').innerHTML=`"<span>${q.text}</span>" — ${q.author}`;
+}
+setInterval(showRandomQuote,15000);
+
+// Start
+document.getElementById('start-btn').addEventListener('click',()=>{
+    document.getElementById('intro-screen').classList.remove('active');
+    document.getElementById('desk-screen').classList.add('active');
+    document.getElementById('audio-bar').classList.remove('hidden');
+    bgAudio.volume=.3;bgAudio.play().catch(()=>{});
+});
+    </script>
+</body>
+</html>
